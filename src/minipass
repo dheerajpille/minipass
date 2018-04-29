@@ -1,2 +1,4 @@
 #!/bin/bash
-echo Hello World!
+GPG=$(gpg -e --default-recipient-self /home/dpille/Documents/minipass/src/samplefile.txt)
+NAME=$(gpg --list-secret-keys | grep -m 1 'uid' | awk '{print substr($5, 0)}')
+echo $NAME
