@@ -1,4 +1,5 @@
 #!/bin/bash
-GPG=$(gpg -e --default-recipient-self /home/dpille/Documents/minipass/src/samplefile.txt)
-NAME=$(gpg --list-secret-keys | grep -m 1 'uid' | awk '{print substr($5, 0)}')
-echo $NAME
+PWD=$(pwd)
+ENCRYPT=$(gpg --encrypt --default-recipient-self $PWD/samplefile.txt)
+DECRYPT=$(gpg --output samplefile.txt --decrypt $PWD/samplefile.txt.gpg)
+echo $PWD
