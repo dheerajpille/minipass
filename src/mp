@@ -10,13 +10,42 @@ COMMAND=$1
 cmd_init() {
 	if [ "$#" -gt 0 ] 
 	then
-		cmd_error "Too many arguments."
-	elif [ -d $HOME/.minipass/ ]
+		cmd_err "Too many arguments."
+	elif [ -d "$HOME"/.minipass/ ]
 	then
-		cmd_error "Password system exists for" $USER
+		cmd_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
-		cmd_msg "Password system created for" $USER
+		cmd_msg "Password system created for" "$USER"
+	fi
+}
+
+# Inserts password for specified domain to password system
+cmd_ins() {
+	if [ -d "$HOME"/.minipass/ ]
+	then
+		if [ "$#" -eq 1 ]
+		then
+			if [ ! -d "$HOME"/.minipass/"$1"/ ]
+			then
+				mkdir "$HOME"/.minipass/"$1"/
+			fi
+			printf "Username: "
+			read -r USERNAME
+			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME" ]
+			then 
+				cmd_err "Username exists for domain" "$1"
+			else
+				printf "Password: "
+				read -r PASSWORD
+				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
+		
+			fi 
+		else
+			cmd_err "Incorrect number of arguments"
+		fi
+	else
+		cmd_err "Password system nonexistant for" "$USER" 
 	fi
 }
 
@@ -26,13 +55,14 @@ cmd_msg() {
 }
 
 # Catches/displays error messages from program
-cmd_error() {
+cmd_err() {
 	echo "Error:" "$@"
 }
 
 case $1 in
-	init)	shift; cmd_init  "$@" 				 ;;
-	*)    	shift; cmd_error "Unknown command."  ;;
+	init )	shift; cmd_init  "$@" 				 ;;
+	ins)    shift; cmd_ins "$@" ;;
+	*)    	shift; cmd_err "Unknown command."  ;;
 esac
 
 exit 0
