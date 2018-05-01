@@ -1,5 +1,38 @@
 #!/bin/bash
-PWD=$(pwd)
-ENCRYPT=$(gpg --encrypt --default-recipient-self $PWD/samplefile.txt)
-DECRYPT=$(gpg --output samplefile.txt --decrypt $PWD/samplefile.txt.gpg)
-echo $PWD
+
+#ENC=$(gpg --encrypt --default-recipient-self $PWD/samplefile.txt)
+#DEC=$(gpg --output samplefile.txt --decrypt $PWD/samplefile.txt.gpg)
+
+PROGRAM="${0##*/}"
+COMMAND=$1
+
+# Creates initial password system file directory
+cmd_init() {
+	if [ "$#" -gt 0 ] 
+	then
+		cmd_error "Too many arguments."
+	elif [ -d $HOME/.minipass/ ]
+	then
+		cmd_error "Password system exists for" $USER
+	else
+		mkdir $HOME/.minipass/
+		cmd_msg "Password system created for" $USER
+	fi
+}
+
+# Displays messages from program
+cmd_msg() {
+	echo "$@"
+}
+
+# Catches/displays error messages from program
+cmd_error() {
+	echo "Error:" "$@"
+}
+
+case $1 in
+	init)	shift; cmd_init  "$@" 				 ;;
+	*)    	shift; cmd_error "Unknown command."  ;;
+esac
+
+exit 0
