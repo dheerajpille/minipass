@@ -24,6 +24,7 @@ cmd_init() {
 cmd_ins() {
 	if [ -d "$HOME"/.minipass/ ]
 	then
+		# Check for empty values in username/password
 		if [ "$#" -eq 1 ]
 		then
 			if [ ! -d "$HOME"/.minipass/"$1"/ ]
@@ -50,13 +51,18 @@ cmd_ins() {
 	fi
 }
 
+#  
 cmd_show() {
-	if [ "$#" -eq 1 ] 
+	if [ "$#" -eq 2 ] 
 	then
-		echo "$HOME"/.minipass/"$@".gpg
-		if [ -f "$HOME"/.minipass/"$@".gpg ] 
+		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
 		then
-			gpg --output $1 --decrypt "$@".gpg
+			# try to bypass passphrase prompt
+			gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
+			cat "$HOME"/.minipass/"$1"/"$2"
+			# Determine a more elegant way for newline after shwoing password
+			echo
+			rm "$HOME"/.minipass/"$1"/"$2"
 		else
 			cmd_err "Password nonexistant for domain and username"
 		fi
@@ -76,10 +82,10 @@ cmd_err() {
 }
 
 case $1 in
-	init )	shift; cmd_init  "$@" 				 ;;
-	ins)    shift; cmd_ins "$@" ;;
-	show)   shift; cmd_show "$@" ;;
-	*)    	shift; cmd_err "Unknown command."  ;;
+	init | initalize )	shift; cmd_init  "$@" 				 ;;
+	ins | insert)    shift; cmd_ins "$@" ;;
+	shw  | show)   shift; cmd_show "$@" ;;
+	*)    	shift; cmd_err "Unknown command"  ;;
 esac
 
 exit 0
