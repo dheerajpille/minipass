@@ -3,8 +3,10 @@
 #ENC=$(gpg --encrypt --default-recipient-self $PWD/samplefile.txt)
 #DEC=$(gpg --output samplefile.txt --decrypt $PWD/samplefile.txt.gpg)
 
-PROGRAM="${0##*/}"
-COMMAND=$1
+#PROGRAM="${0##*/}"
+#COMMAND=$1
+
+# Add options later
 
 # Creates initial password system file directory
 cmd_init() {
@@ -16,7 +18,7 @@ cmd_init() {
 		cmd_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
-		cmd_msg "Password system created for" "$USER"
+		cmd_msg "Password syst.em created for" "$USER"
 	fi
 }
 
@@ -59,14 +61,29 @@ cmd_show() {
 		then
 			# try to bypass passphrase prompt
 			gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
-			cat "$HOME"/.minipass/"$1"/"$2"
-			# Determine a more elegant way for newline after shwoing password
-			echo
+			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
 			rm "$HOME"/.minipass/"$1"/"$2"
 		else
 			cmd_err "Password nonexistant for domain and username"
 		fi
 	else
+		cmd_err "Incorrect number of arguments"
+	fi
+}
+
+# Generates random password
+cmd_gen() {
+	# add alphanumeric flag
+	if [ "$#" -eq 1 ]
+	then
+		if [ "$1"  = ^[0-9]+$ ]
+		then
+			head /dev/urandom | tr -dc a-zA-Z0-9!\ \"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo ''
+		else
+			cmd_err "Expected numerical argument greater than 1"
+		fi
+	else
+		echo "$1"
 		cmd_err "Incorrect number of arguments"
 	fi
 }
@@ -82,9 +99,10 @@ cmd_err() {
 }
 
 case $1 in
-	init | initalize )	shift; cmd_init  "$@" 				 ;;
-	ins | insert)    shift; cmd_ins "$@" ;;
-	shw  | show)   shift; cmd_show "$@" ;;
+	init     | initialize )	shift; cmd_init  "$@" 				 ;;
+	ins      | insert)    shift; cmd_ins "$@" ;;
+	show)   shift; cmd_show "$@" ;;
+	gen | generate) shift; cmd_gen "$@" ;;
 	*)    	shift; cmd_err "Unknown command"  ;;
 esac
 
