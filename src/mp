@@ -76,30 +76,31 @@ cmd_gen() {
 	# add alphanumeric flag
 	# check for 1 of of cap/low/digit/spec each in random position
 	local num_regex='^[0-9]+$'
-	local upper=false
-	local lower=false
-	local number=false
-	local special=false
+	local lower_check='^*[a-z]*$'
+	local lower_state=false
+	local upper_state=false
+	local number_state=false
+	local special_state=false
 	if [ "$#" -eq 1 ]
 	then
-		if [[ "$1" =~ "$num_regex" && "$1" -ge 4 ]]
+		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]]
 		then
 			while true
 			do
-				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo '')"
-				if [ "$gen_pwd" = *'[a-z]'* ]
+				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9\!\#\$\%\&\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo '')"
+				if [[ "$gen_pwd" =~ $lower_check ]]
 				then
 					lower=true
 				else
 					lower=false
 				fi
-				if [ "$gen_pwd" = *'[A-Z]'* ]
+				if [ "$gen_pwd" == *'[A-Z]'* ]
 				then
 					upper=true
 				else
 					upper=false
 				fi
-				if [ "$gen_pwd" = *'[0-9]'* ]
+				if [ "$gen_pwd" == *'[0-9]'* ]
 				then
 					number=true
 				else
@@ -107,11 +108,17 @@ cmd_gen() {
 				fi
 				# make special check a case maybe
 				# remove else and add another if statement to reset at end
-				if [ "$gen_pwd" = *'[a-z]'* ]
+				if [ "$gen_pwd" == *'\!|\#|\$|\%|\&||\(|\)|\*|\+|\,|\-|\.|\/|\:|\;|\<|\=|\>|\?|\@|\[|\\|\]|\^|\_|\`|\{|\||\}|\~'* ]
 				then
 					special=true
 				else
 					special=false
+				fi
+				echo "$lower"
+				if [[ "$lower"==true && "$upper"==true && "$number"==true && "$special"==true ]]
+				then
+					echo "$gen_pwd"
+					break
 				fi
 
 			done
