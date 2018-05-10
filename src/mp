@@ -74,13 +74,49 @@ cmd_show() {
 # Generates random password
 cmd_gen() {
 	# add alphanumeric flag
+	# check for 1 of of cap/low/digit/spec each in random position
+	local num_regex='^[0-9]+$'
+	local upper=false
+	local lower=false
+	local number=false
+	local special=false
 	if [ "$#" -eq 1 ]
 	then
-		if [ "$1"  = ^[0-9]+$ ]
+		if [[ "$1" =~ "$num_regex" && "$1" -ge 4 ]]
 		then
-			head /dev/urandom | tr -dc a-zA-Z0-9!\ \"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo ''
+			while true
+			do
+				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo '')"
+				if [ "$gen_pwd" = *'[a-z]'* ]
+				then
+					lower=true
+				else
+					lower=false
+				fi
+				if [ "$gen_pwd" = *'[A-Z]'* ]
+				then
+					upper=true
+				else
+					upper=false
+				fi
+				if [ "$gen_pwd" = *'[0-9]'* ]
+				then
+					number=true
+				else
+					number=false
+				fi
+				# make special check a case maybe
+				# remove else and add another if statement to reset at end
+				if [ "$gen_pwd" = *'[a-z]'* ]
+				then
+					special=true
+				else
+					special=false
+				fi
+
+			done
 		else
-			cmd_err "Expected numerical argument greater than 1"
+			cmd_err "Expected valid numerical argument greater than or equal to 4"
 		fi
 	else
 		echo "$1"
