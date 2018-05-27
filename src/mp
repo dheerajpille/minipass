@@ -18,7 +18,7 @@ cmd_init() {
 		cmd_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
-		cmd_msg "Password syst.em created for" "$USER"
+		cmd_msg "Password system created for" "$USER"
 	fi
 }
 
@@ -34,13 +34,13 @@ cmd_ins() {
 				mkdir "$HOME"/.minipass/"$1"/
 			fi
 			printf "Username: "
-			read -r USERNAME
+			read USERNAME
 			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ]
 			then 
 				cmd_err "Username exists for domain" "$1"
 			else
 				printf "Password: "
-				read -r PASSWORD
+				read -s PASSWORD && echo
 				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
 				rm "$HOME"/.minipass/"$1"/"$USERNAME"
@@ -53,7 +53,7 @@ cmd_ins() {
 	fi
 }
 
-#  
+# Shows password for specified domain and username/login credentials
 cmd_show() {
 	if [ "$#" -eq 2 ] 
 	then
@@ -75,8 +75,19 @@ cmd_show() {
 cmd_gen() {
 	# add alphanumeric flag
 	# check for 1 of of cap/low/digit/spec each in random position
-	local num_regex='^[0-9]+$'
-	local lower_check='^*[a-z]*$'
+	local lower_check='^.*[a-z]+.*$'
+	local upper_check='^.*[A-Z]+.*$'
+	local number_check='^.*[0-9]+.*$'
+	local special_check='^.*[\!\#\$\%\&\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~]+.*$'
+	local regex='^.*[\$\!]+.*$'
+	local str="1$2"
+	echo "regex test"
+	if [[ "$str" =~ $regex ]] 
+	then 
+		echo "lasdf"
+	else 
+		echo "bbd"
+	fi
 	local lower_state=false
 	local upper_state=false
 	local number_state=false
@@ -89,44 +100,70 @@ cmd_gen() {
 			do
 				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9\!\#\$\%\&\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo '')"
 				if [[ "$gen_pwd" =~ $lower_check ]]
-				then
-					lower=true
+				then 
+					lower_state=true
 				else
-					lower=false
+					lower_state=false
 				fi
-				if [ "$gen_pwd" == *'[A-Z]'* ]
+				if [[ "$gen_pwd" =~ $upper_check ]]
 				then
-					upper=true
+					upper_state=true
 				else
-					upper=false
+					upper_state=false
 				fi
-				if [ "$gen_pwd" == *'[0-9]'* ]
+				if [[ "$gen_pwd" =~ $number_check ]]
 				then
-					number=true
+					number_state=true
 				else
-					number=false
+					number_state=false
 				fi
-				# make special check a case maybe
-				# remove else and add another if statement to reset at end
-				if [ "$gen_pwd" == *'\!|\#|\$|\%|\&||\(|\)|\*|\+|\,|\-|\.|\/|\:|\;|\<|\=|\>|\?|\@|\[|\\|\]|\^|\_|\`|\{|\||\}|\~'* ]
+				if [[ "$gen_pwd" =~ $special_check ]]
 				then
-					special=true
+					special_state=true
 				else
-					special=false
+					special_state=false
 				fi
-				echo "$lower"
-				if [[ "$lower"==true && "$upper"==true && "$number"==true && "$special"==true ]]
+				if [[ "$lower_state"==true && "$upper_state"==true && "$number_state"==true && "$special_state"==true ]]
 				then
-					echo "$gen_pwd"
 					break
 				fi
-
+				echo "lol"
 			done
+
+			echo "$lower_state"
+			echo "$upper_state"
+			echo "$number_state"
+			echo "$special_state"
+			echo "$gen_pwd"
 		else
 			cmd_err "Expected valid numerical argument greater than or equal to 4"
 		fi
 	else
 		echo "$1"
+		cmd_err "Incorrect number of arguments"
+	fi
+}
+
+cmd_rm() {
+	if [ "$#" -eq 2 ] 
+	then
+		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
+		then
+			# Add option which bypasses prompt with -y
+			printf "Remove password for" "$2" "in" "$1" "? (y/n): "
+			read INPUT
+			case "$string" in
+			    [yY] | [yY][eE][sS] ) echo "Here's where you process yes" ;;
+			    [nN] | [nN][oO]     ) echo "And here you deal with no" ;;
+			    *                   ) echo "I don't understand '$string'" ;;
+			esac
+			rm "$HOME"/.minipass/"$1"/"$2".gpg
+			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
+			rm "$HOME"/.minipass/"$1"/"$2"
+		else
+			cmd_err "Password nonexistant for domain and username"
+		fi
+	else
 		cmd_err "Incorrect number of arguments"
 	fi
 }
@@ -142,11 +179,11 @@ cmd_err() {
 }
 
 case $1 in
-	init     | initialize )	shift; cmd_init  "$@" 				 ;;
-	ins      | insert)    shift; cmd_ins "$@" ;;
-	show)   shift; cmd_show "$@" ;;
-	gen | generate) shift; cmd_gen "$@" ;;
-	*)    	shift; cmd_err "Unknown command"  ;;
+	init     | initialize) shift; cmd_init  "$@";;
+	ins      | insert     ) shift; cmd_ins "$@";;
+	show                  ) shift; cmd_show "$@";;
+	gen      | generate   ) shift; cmd_gen "$@";;
+	*                      ) shift; cmd_err "Unknown command";;
 esac
 
 exit 0
