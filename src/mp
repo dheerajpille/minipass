@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#ENC=$(gpg --encrypt --default-recipient-self $PWD/samplefile.txt)
-#DEC=$(gpg --output samplefile.txt --decrypt $PWD/samplefile.txt.gpg)
-
 #PROGRAM="${0##*/}"
 #COMMAND=$1
 
@@ -150,16 +147,16 @@ cmd_rm() {
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
 		then
 			# Add option which bypasses prompt with -y
-			printf "Remove password for" "$2" "in" "$1" "? (y/n): "
+			printf "Remove password for $2 in domain $1? (y/n): "
 			read INPUT
 			case "$string" in
 			    [yY] | [yY][eE][sS] ) echo "Here's where you process yes" ;;
 			    [nN] | [nN][oO]     ) echo "And here you deal with no" ;;
 			    *                   ) echo "I don't understand '$string'" ;;
 			esac
-			rm "$HOME"/.minipass/"$1"/"$2".gpg
-			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
-			rm "$HOME"/.minipass/"$1"/"$2"
+			#rm "$HOME"/.minipass/"$1"/"$2".gpg
+			#cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
+			#rm "$HOME"/.minipass/"$1"/"$2"
 		else
 			cmd_err "Password nonexistant for domain and username"
 		fi
@@ -179,11 +176,12 @@ cmd_err() {
 }
 
 case $1 in
-	init     | initialize) shift; cmd_init  "$@";;
-	ins      | insert     ) shift; cmd_ins "$@";;
-	show                  ) shift; cmd_show "$@";;
-	gen      | generate   ) shift; cmd_gen "$@";;
-	*                      ) shift; cmd_err "Unknown command";;
+	init    | initialize ) shift; cmd_init    "$@";;
+	ins     | insert     ) shift; cmd_ins     "$@";;
+	gen     | generate   ) shift; cmd_gen     "$@";;
+	show                 ) shift; cmd_show    "$@";;
+	rm      | remove     ) shift; cmd_rm      "$@";;
+	*                    ) shift; cmd_err "Unknown command: please use mp help for more details";;
 esac
 
 exit 0
