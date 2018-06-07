@@ -142,21 +142,27 @@ cmd_gen() {
 }
 
 cmd_rm() {
+	# Add check to remove whoel domain maybe?				
 	if [ "$#" -eq 2 ] 
 	then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
 		then
 			# Add option which bypasses prompt with -y
-			printf "Remove password for $2 in domain $1? (y/n): "
-			read INPUT
-			case "$string" in
-			    [yY] | [yY][eE][sS] ) echo "Here's where you process yes" ;;
-			    [nN] | [nN][oO]     ) echo "And here you deal with no" ;;
-			    *                   ) echo "I don't understand '$string'" ;;
-			esac
-			#rm "$HOME"/.minipass/"$1"/"$2".gpg
-			#cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
-			#rm "$HOME"/.minipass/"$1"/"$2"
+			while true
+			do
+				printf "Remove password for $2 in domain $1? (y/n): "
+				read INPUT
+				if [[ $INPUT = [yY] ]] || [[ $INPUT = [yY][eE][sS] ]]
+				then
+					rm "$HOME"/.minipass/"$1"/"$2".gpg
+					break
+				elif [[ $INPUT = [nN] ]]|| [[ $INPUT = [nN][oO] ]]
+				then
+					break
+				else
+					echo "I don't understand your input"
+				fi 
+			done
 		else
 			cmd_err "Password nonexistant for domain and username"
 		fi
