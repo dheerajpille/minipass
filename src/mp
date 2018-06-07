@@ -6,6 +6,7 @@
 # Add options later
 
 # Creates initial password system file directory
+# Modulaize a bit more fo repetitive stuff
 cmd_init() {
 	if [ "$#" -gt 0 ] 
 	then
@@ -71,66 +72,51 @@ cmd_show() {
 # Generates random password
 cmd_gen() {
 	# add alphanumeric flag
-	# check for 1 of of cap/low/digit/spec each in random position
 	local lower_check='^.*[a-z]+.*$'
 	local upper_check='^.*[A-Z]+.*$'
 	local number_check='^.*[0-9]+.*$'
-	local special_check='^.*[\!\#\$\%\&\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~]+.*$'
-	local regex='^.*[\$\!]+.*$'
-	local str="1$2"
-	echo "regex test"
-	if [[ "$str" =~ $regex ]] 
-	then 
-		echo "lasdf"
-	else 
-		echo "bbd"
-	fi
-	local lower_state=false
-	local upper_state=false
-	local number_state=false
-	local special_state=false
+	local special_check='^.*[!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~]+.*$'
+	local lower_state=0
+	local upper_state=0
+	local number_state=0
+	local special_state=0
+
 	if [ "$#" -eq 1 ]
 	then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]]
 		then
 			while true
 			do
-				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9\!\#\$\%\&\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~ | head -c $1 ; echo '')"
+				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
 				if [[ "$gen_pwd" =~ $lower_check ]]
 				then 
-					lower_state=true
+					lower_state=1
 				else
-					lower_state=false
+					lower_state=0
 				fi
 				if [[ "$gen_pwd" =~ $upper_check ]]
 				then
-					upper_state=true
+					upper_state=1
 				else
-					upper_state=false
+					upper_state=0
 				fi
 				if [[ "$gen_pwd" =~ $number_check ]]
 				then
-					number_state=true
+					number_state=1
 				else
-					number_state=false
+					number_state=0
 				fi
 				if [[ "$gen_pwd" =~ $special_check ]]
 				then
-					special_state=true
+					special_state=1
 				else
-					special_state=false
+					special_state=0
 				fi
-				if [[ "$lower_state"==true && "$upper_state"==true && "$number_state"==true && "$special_state"==true ]]
+				if [ "$lower_state" -eq 1 ] && [ "$upper_state" -eq 1 ] && [ "$number_state" -eq 1 ] && [ "$special_state" -eq 1 ]
 				then
 					break
 				fi
-				echo "lol"
 			done
-
-			echo "$lower_state"
-			echo "$upper_state"
-			echo "$number_state"
-			echo "$special_state"
 			echo "$gen_pwd"
 		else
 			cmd_err "Expected valid numerical argument greater than or equal to 4"
@@ -141,8 +127,9 @@ cmd_gen() {
 	fi
 }
 
+# Removes password from specified domain from password system
 cmd_rm() {
-	# Add check to remove whoel domain maybe?				
+	# Add check to remove whole domain and subsytem maybe?				
 	if [ "$#" -eq 2 ] 
 	then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
@@ -152,15 +139,15 @@ cmd_rm() {
 			do
 				printf "Remove password for $2 in domain $1? (y/n): "
 				read INPUT
-				if [[ $INPUT = [yY] ]] || [[ $INPUT = [yY][eE][sS] ]]
+				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]]
 				then
 					rm "$HOME"/.minipass/"$1"/"$2".gpg
 					break
-				elif [[ $INPUT = [nN] ]]|| [[ $INPUT = [nN][oO] ]]
+				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]]
 				then
 					break
 				else
-					echo "I don't understand your input"
+					echo "I don't understand your input..."
 				fi 
 			done
 		else
