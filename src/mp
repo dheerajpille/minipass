@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#PROGRAM="${0##*/}"
-#COMMAND=$1
-
 # Add options later
 
 # Creates initial password system file directory
@@ -22,25 +19,43 @@ cmd_init() {
 
 # Inserts password for specified domain to password system
 cmd_ins() {
+	local multiline=0
+	while getopts ":m" o;
+	do
+	    case "${o}" in
+	        m)
+	            multiline=1; shift;;
+	    esac
+	done
 	if [ -d "$HOME"/.minipass/ ]
 	then
-		# Check for empty values in username/password
 		if [ "$#" -eq 1 ]
 		then
 			if [ ! -d "$HOME"/.minipass/"$1"/ ]
 			then
 				mkdir "$HOME"/.minipass/"$1"/
 			fi
-			printf "Username: "
-			read USERNAME
+			while true
+			do
+				printf "Username: "
+				read USERNAME
+				if [ -z "$USERNAME" ]
+				then
+					echo "Username is empty. Please enter a non-empty username."
+				else 
+					break
+				fi
+			done
 			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ]
 			then 
 				cmd_err "Username exists for domain" "$1"
 			else
+				# Add check if password is empty?
 				printf "Password: "
 				read -s PASSWORD && echo
 				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
+				# Maybe do this in temporary files
 				rm "$HOME"/.minipass/"$1"/"$USERNAME"
 			fi 
 		else
