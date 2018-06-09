@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Add options later
-
 # Creates initial password system file directory
-# Modulaize a bit more fo repetitive stuff
+# Modulaize a bit more of the repetitive stuff
+# Make variables capitalized?
 cmd_init() {
 	if [ "$#" -gt 0 ] 
 	then
@@ -19,14 +18,20 @@ cmd_init() {
 
 # Inserts password for specified domain to password system
 cmd_ins() {
-	local multiline=0
-	while getopts ":m" o;
-	do
-	    case "${o}" in
-	        m)
-	            multiline=1; shift;;
-	    esac
+	local echo=false
+	local multiline=false
+
+	local opts=`getopt -o :e:m --long :echo:multiline -n 'parse-options' -- "$@"`
+	eval set -- "$opts"
+
+	while true; do
+	  case "$1" in
+	    -e | --echo      ) 	echo=true;      shift;;
+	    -m | --multiline )  multiline=true; shift;;
+		*                )           shift; break;;
+	  esac
 	done
+
 	if [ -d "$HOME"/.minipass/ ]
 	then
 		if [ "$#" -eq 1 ]
@@ -52,10 +57,15 @@ cmd_ins() {
 			else
 				# Add check if password is empty?
 				printf "Password: "
-				read -s PASSWORD && echo
+				if [ "$echo" = true ]
+				then
+					read PASSWORD
+				else
+					read -s PASSWORD && echo
+				fi
 				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
-				# Maybe do this in temporary files
+				# Maybe do this in temporary files, since this shows up in trash currently
 				rm "$HOME"/.minipass/"$1"/"$USERNAME"
 			fi 
 		else
@@ -91,10 +101,10 @@ cmd_gen() {
 	local upper_check='^.*[A-Z]+.*$'
 	local number_check='^.*[0-9]+.*$'
 	local special_check='^.*[!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~]+.*$'
-	local lower_state=0
-	local upper_state=0
-	local number_state=0
-	local special_state=0
+	local lower_state=false
+	local upper_state=false
+	local number_state=false
+	local special_state=false
 
 	if [ "$#" -eq 1 ]
 	then
@@ -105,29 +115,29 @@ cmd_gen() {
 				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
 				if [[ "$gen_pwd" =~ $lower_check ]]
 				then 
-					lower_state=1
+					lower_state=true
 				else
-					lower_state=0
+					lower_state=false
 				fi
 				if [[ "$gen_pwd" =~ $upper_check ]]
 				then
-					upper_state=1
+					upper_state=true
 				else
-					upper_state=0
+					upper_state=false
 				fi
 				if [[ "$gen_pwd" =~ $number_check ]]
 				then
-					number_state=1
+					number_state=true
 				else
-					number_state=0
+					number_state=false
 				fi
 				if [[ "$gen_pwd" =~ $special_check ]]
 				then
-					special_state=1
+					special_state=true
 				else
-					special_state=0
+					special_state=false
 				fi
-				if [ "$lower_state" -eq 1 ] && [ "$upper_state" -eq 1 ] && [ "$number_state" -eq 1 ] && [ "$special_state" -eq 1 ]
+				if [ "$lower_state" = true ] && [ "$upper_state" = true ] && [ "$number_state" = true ] && [ "$special_state" = true ]
 				then
 					break
 				fi
