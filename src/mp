@@ -4,11 +4,9 @@
 # Modulaize a bit more of the repetitive stuff
 # Make variables capitalized?
 cmd_init() {
-	if [ "$#" -gt 0 ] 
-	then
+	if [ "$#" -gt 0 ] ; then
 		cmd_err "Too many arguments."
-	elif [ -d "$HOME"/.minipass/ ]
-	then
+	elif [ -d "$HOME"/.minipass/ ] ; then
 		cmd_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
@@ -24,51 +22,41 @@ cmd_ins() {
 	local opts=`getopt -o em --long echo,multiline -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
-	while true
-	do
+	while true ; do
 		case "$1" in
-		    -e | --echo      ) 	echo=true;      shift;;
-		    -m | --multiline )  multiline=true; shift;;
-			--               )           shift; break;;
-			*                )           shift; break;;
+		    -e | --echo      ) 	echo=true;      shift ;;
+		    -m | --multiline )  multiline=true; shift ;;
+			--               )           shift; break ;;
+			*                )           shift; break ;;
 		  esac
 	done
 
-	# Enables echo option if multiline is selected
-	if [ "$multiline" = true ]
-	then
+	# Enables echo option if multiline is flagged
+	if [ "$multiline" = true ] ; then
 		echo=true
 	fi
 
-	if [ -d "$HOME"/.minipass/ ]
-	then
-		if [ "$#" -eq 1 ]
-		then
-			if [ ! -d "$HOME"/.minipass/"$1"/ ]
-			then
+	if [ -d "$HOME"/.minipass/ ] ; then
+		if [ "$#" -eq 1 ] ; then
+			if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
 				mkdir "$HOME"/.minipass/"$1"/
 			fi
-			while true
-			do
+			while true ; do
 				printf "Username: "
 				read USERNAME
-				if [ -z "$USERNAME" ]
-				then
+				if [ -z "$USERNAME" ] ; then
 					echo "Username is empty. Please enter a non-empty username."
 				else 
 					break
 				fi
 			done
-			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ]
-			then 
+			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
 				cmd_err "Username exists for domain" "$1"
 			else
 				# Add check if password is empty?
 				printf "Password: "
-				if [ "$echo" = true ]
-				then
-					if [ "$multiline" = true ]
-					then
+				if [ "$echo" = true ] ; then
+					if [ "$multiline" = true ] ; then
 						PASSWORD=$(</dev/stdin)
 					else
 						read -r PASSWORD
@@ -93,9 +81,7 @@ cmd_ins() {
 cmd_show() {
 	if [ "$#" -eq 2 ] 
 	then
-		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
-		then
-			# try to bypass passphrase prompt
+		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
 			gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
 			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
 			rm "$HOME"/.minipass/"$1"/"$2"
@@ -119,39 +105,33 @@ cmd_gen() {
 	local number_state=false
 	local special_state=false
 
-	if [ "$#" -eq 1 ]
-	then
+	if [ "$#" -eq 1 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]]
 		then
 			while true
 			do
 				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
-				if [[ "$gen_pwd" =~ $lower_check ]]
-				then 
+				if [[ "$gen_pwd" =~ $lower_check ]] ; then 
 					lower_state=true
 				else
 					lower_state=false
 				fi
-				if [[ "$gen_pwd" =~ $upper_check ]]
-				then
+				if [[ "$gen_pwd" =~ $upper_check ]] ; then
 					upper_state=true
 				else
 					upper_state=false
 				fi
-				if [[ "$gen_pwd" =~ $number_check ]]
-				then
+				if [[ "$gen_pwd" =~ $number_check ]] ; then
 					number_state=true
 				else
 					number_state=false
 				fi
-				if [[ "$gen_pwd" =~ $special_check ]]
-				then
+				if [[ "$gen_pwd" =~ $special_check ]] ; then
 					special_state=true
 				else
 					special_state=false
 				fi
-				if [ "$lower_state" = true ] && [ "$upper_state" = true ] && [ "$number_state" = true ] && [ "$special_state" = true ]
-				then
+				if [ "$lower_state" = true ] && [ "$upper_state" = true ] && [ "$number_state" = true ] && [ "$special_state" = true ] ; then
 					break
 				fi
 			done
@@ -168,21 +148,16 @@ cmd_gen() {
 # Removes password from specified domain from password system
 cmd_rm() {
 	# Add check to remove whole domain and subsytem maybe?				
-	if [ "$#" -eq 2 ] 
-	then
-		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] 
-		then
+	if [ "$#" -eq 2 ] ; then
+		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
 			# Add option which bypasses prompt with -y
-			while true
-			do
+			while true ; do
 				printf "Remove password for $2 in domain $1? (y/n): "
 				read INPUT
-				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]]
-				then
+				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
 					rm "$HOME"/.minipass/"$1"/"$2".gpg
 					break
-				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]]
-				then
+				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
 					break
 				else
 					echo "I don't understand your input..."
@@ -207,12 +182,12 @@ cmd_err() {
 }
 
 case $1 in
-	init    | initialize ) shift; cmd_init    "$@";;
-	ins     | insert     ) shift; cmd_ins     "$@";;
-	gen     | generate   ) shift; cmd_gen     "$@";;
-	show                 ) shift; cmd_show    "$@";;
-	rm      | remove     ) shift; cmd_rm      "$@";;
-	*                    ) shift; cmd_err "Unknown command: please use mp help for more details";;
+	init    | initialize ) shift; cmd_init    "$@" ;;
+	ins     | insert     ) shift; cmd_ins     "$@" ;;
+	gen     | generate   ) shift; cmd_gen     "$@" ;;
+	show                 ) shift; cmd_show    "$@" ;;
+	rm      | remove     ) shift; cmd_rm      "$@" ;;
+	*                    ) shift; cmd_err "Unknown command: please use mp help for more details" ;;
 esac
 
 exit 0
