@@ -24,10 +24,10 @@ cmd_ins() {
 
 	while true ; do
 		case "$1" in
-		    -e | --echo      ) 	echo=true;      shift ;;
-		    -m | --multiline )  multiline=true; shift ;;
-			--               )           shift; break ;;
-			*                )           shift; break ;;
+		    -e | --echo      )			 echo=true; shift ;;
+		    -m | --multiline )		multiline=true; shift ;;
+			--               )				 shift; break ;;
+			*                )				 shift; break ;;
 		  esac
 	done
 
@@ -147,22 +147,38 @@ cmd_gen() {
 
 # Removes password from specified domain from password system
 cmd_rm() {
-	# Add check to remove whole domain and subsytem maybe?				
+	# Add check to remove whole domain and subsytem maybe?	
+	local YES=false
+
+	local opts=`getopt -o y --long yes -n 'parse-options' -- "$@"`
+	eval set -- "$opts"
+
+	while true ; do
+		case "$1" in
+		    -y | --yes )		YES=true; shift ;;
+			--         )           shift; break ;;
+			*          )           shift; break ;;
+		  esac
+	done
+
 	if [ "$#" -eq 2 ] ; then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
-			# Add option which bypasses prompt with -y
-			while true ; do
-				printf "Remove password for $2 in domain $1? (y/n): "
-				read INPUT
-				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
-					rm "$HOME"/.minipass/"$1"/"$2".gpg
-					break
-				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
-					break
-				else
-					echo "I don't understand your input..."
-				fi 
-			done
+			if [ "$YES" = true ] ; then
+				rm "$HOME"/.minipass/"$1"/"$2".gpg
+			else
+				while true ; do
+					printf "Remove password for $2 in domain $1? (y/n): "
+					read INPUT
+					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
+						rm "$HOME"/.minipass/"$1"/"$2".gpg
+						break
+					elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
+						break
+					else
+						echo "I don't understand your input..."
+					fi 
+				done
+			fi
 		else
 			cmd_err "Password nonexistant for domain and username"
 		fi
