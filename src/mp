@@ -21,16 +21,24 @@ cmd_ins() {
 	local echo=false
 	local multiline=false
 
-	local opts=`getopt -o :e:m --long :echo:multiline -n 'parse-options' -- "$@"`
+	local opts=`getopt -o em --long echo,multiline -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
-	while true; do
-	  case "$1" in
-	    -e | --echo      ) 	echo=true;      shift;;
-	    -m | --multiline )  multiline=true; shift;;
-		*                )           shift; break;;
-	  esac
+	while true
+	do
+		case "$1" in
+		    -e | --echo      ) 	echo=true;      shift;;
+		    -m | --multiline )  multiline=true; shift;;
+			--               )           shift; break;;
+			*                )           shift; break;;
+		  esac
 	done
+
+	# Enables echo option if multiline is selected
+	if [ "$multiline" = true ]
+	then
+		echo=true
+	fi
 
 	if [ -d "$HOME"/.minipass/ ]
 	then
@@ -59,9 +67,14 @@ cmd_ins() {
 				printf "Password: "
 				if [ "$echo" = true ]
 				then
-					read PASSWORD
+					if [ "$multiline" = true ]
+					then
+						PASSWORD=$(</dev/stdin)
+					else
+						read -r PASSWORD
+					fi
 				else
-					read -s PASSWORD && echo
+					read -r -s PASSWORD && echo
 				fi
 				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
