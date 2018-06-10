@@ -16,16 +16,16 @@ cmd_init() {
 
 # Inserts password for specified domain to password system
 cmd_ins() {
-	local echo=false
-	local multiline=false
+	local ECHO=false
+	local MULTILINE=false
 
 	local opts=`getopt -o em --long echo,multiline -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
 	while true ; do
 		case "$1" in
-		    -e | --echo      )			 echo=true; shift ;;
-		    -m | --multiline )		multiline=true; shift ;;
+		    -e | --echo      )			 ECHO=true; shift ;;
+		    -m | --multiline )		MULTILINE=true; shift ;;
 			--               )				 shift; break ;;
 			*                )				 shift; break ;;
 		  esac
@@ -55,8 +55,8 @@ cmd_ins() {
 			else
 				# Add check if password is empty?
 				printf "Password: "
-				if [ "$echo" = true ] ; then
-					if [ "$multiline" = true ] ; then
+				if [ "$ECHO" = true ] ; then
+					if [ "$MULTILINE" = true ] ; then
 						PASSWORD=$(</dev/stdin)
 					else
 						read -r PASSWORD
@@ -96,14 +96,14 @@ cmd_show() {
 # Generates random password
 cmd_gen() {
 	# add alphanumeric flag
-	local lower_check='^.*[a-z]+.*$'
-	local upper_check='^.*[A-Z]+.*$'
-	local number_check='^.*[0-9]+.*$'
-	local special_check='^.*[!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~]+.*$'
-	local lower_state=false
-	local upper_state=false
-	local number_state=false
-	local special_state=false
+	local LOWER_CHECK='^.*[a-z]+.*$'
+	local UPPER_CHECK='^.*[A-Z]+.*$'
+	local NUMBER_CHECK='^.*[0-9]+.*$'
+	local SPECIAL_CHECK='^.*[!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~]+.*$'
+	local LOWER_STATE=false
+	local UPPER_STATE=false
+	local NUMBER_STATE=false
+	local SPECIAL_STATE=false
 
 	if [ "$#" -eq 1 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]]
@@ -111,27 +111,27 @@ cmd_gen() {
 			while true
 			do
 				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
-				if [[ "$gen_pwd" =~ $lower_check ]] ; then 
-					lower_state=true
+				if [[ "$gen_pwd" =~ $LOWER_CHECK ]] ; then 
+					LOWER_STATE=true
 				else
-					lower_state=false
+					LOWER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $upper_check ]] ; then
-					upper_state=true
+				if [[ "$gen_pwd" =~ $UPPER_CHECK ]] ; then
+					UPPER_STATE=true
 				else
-					upper_state=false
+					UPPER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $number_check ]] ; then
-					number_state=true
+				if [[ "$gen_pwd" =~ $NUMBER_CHECK ]] ; then
+					NUMBER_STATE=true
 				else
-					number_state=false
+					NUMBER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $special_check ]] ; then
-					special_state=true
+				if [[ "$gen_pwd" =~ $SPECIAL_CHECK ]] ; then
+					SPECIAL_STATE=true
 				else
-					special_state=false
+					SPECIAL_STATE=false
 				fi
-				if [ "$lower_state" = true ] && [ "$upper_state" = true ] && [ "$number_state" = true ] && [ "$special_state" = true ] ; then
+				if [ "$LOWER_STATE" = true ] && [ "$UPPER_STATE" = true ] && [ "$NUMBER_STATE" = true ] && [ "$SPECIAL_STATE" = true ] ; then
 					break
 				fi
 			done
