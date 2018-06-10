@@ -5,12 +5,12 @@
 # Make variables capitalized?
 cmd_init() {
 	if [ "$#" -gt 0 ] ; then
-		cmd_err "Too many arguments."
+		func_err "Too many arguments."
 	elif [ -d "$HOME"/.minipass/ ] ; then
-		cmd_err "Password system exists for" "$USER"
+		func_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
-		cmd_msg "Password system created for" "$USER"
+		func_msg "Password system created for" "$USER"
 	fi
 }
 
@@ -51,7 +51,7 @@ cmd_ins() {
 				fi
 			done
 			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-				cmd_err "Username exists for domain" "$1"
+				func_err "Username exists for domain" "$1"
 			else
 				# Add check if password is empty?
 				printf "Password: "
@@ -70,10 +70,10 @@ cmd_ins() {
 				rm "$HOME"/.minipass/"$1"/"$USERNAME"
 			fi 
 		else
-			cmd_err "Incorrect number of arguments"
+			func_err "Incorrect number of arguments"
 		fi
 	else
-		cmd_err "Password system nonexistant for" "$USER" 
+		func_err "Password system nonexistant for" "$USER" 
 	fi
 }
 
@@ -86,10 +86,10 @@ cmd_show() {
 			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
 			rm "$HOME"/.minipass/"$1"/"$2"
 		else
-			cmd_err "Password nonexistant for domain and username"
+			func_err "Password nonexistant for domain and username"
 		fi
 	else
-		cmd_err "Incorrect number of arguments"
+		func_err "Incorrect number of arguments"
 	fi
 }
 
@@ -137,17 +137,17 @@ cmd_gen() {
 			done
 			echo "$gen_pwd"
 		else
-			cmd_err "Expected valid numerical argument greater than or equal to 4"
+			func_err "Expected valid numerical argument greater than or equal to 4"
 		fi
 	else
 		echo "$1"
-		cmd_err "Incorrect number of arguments"
+		func_err "Incorrect number of arguments"
 	fi
 }
 
 # Removes password from specified domain from password system
 cmd_rm() {
-	# Add check to remove whole domain and subsytem maybe?	
+	local INPUT=""
 	local YES=false
 
 	local opts=`getopt -o y --long yes -n 'parse-options' -- "$@"`
@@ -161,7 +161,50 @@ cmd_rm() {
 		  esac
 	done
 
-	if [ "$#" -eq 2 ] ; then
+	if [ ! -d "$HOME"/.minipass/ ] ; then
+		func_err "Password system nonexistant for" "$USER" 
+		return
+	fi
+
+	if [ "$#" -eq 0 ] ; then
+		if [ "$YES" = true ] ; then
+			rm "$HOME"/.minipass
+		else
+			while true ; do
+				printf "Remove password system for $USER? (y/n): "
+				read INPUT
+				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
+					rm "$HOME"/.minipass
+					break
+				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
+					break
+				else
+					func_err "I don't understand your input..."
+				fi 
+			done
+		fi
+	elif [ "$#" -eq 1 ] ; then
+		if [ -f "$HOME"/.minipass/"$1" ] ; then
+			if [ "$YES" = true ] ; then
+				rm "$HOME"/.minipass/"$1"
+			else
+				while true ; do
+					printf "Remove password for $2 in domain $1? (y/n): "
+					read INPUT
+					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
+						rm "$HOME"/.minipass/"$1"
+						break
+					elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
+						break
+					else
+						func_err "I don't understand your input..."
+					fi 
+				done
+			fi
+		else
+			func_err "Domain $1 nonexistant in password system"
+		fi
+	elif [ "$#" -eq 2 ] ; then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
 			if [ "$YES" = true ] ; then
 				rm "$HOME"/.minipass/"$1"/"$2".gpg
@@ -175,35 +218,35 @@ cmd_rm() {
 					elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
 						break
 					else
-						echo "I don't understand your input..."
+						func_err "I don't understand your input..."
 					fi 
 				done
 			fi
 		else
-			cmd_err "Password nonexistant for domain and username"
+			func_err "Username $2 nonexistant for domain $1"
 		fi
 	else
-		cmd_err "Incorrect number of arguments"
+		func_err "Incorrect number of arguments"
 	fi
 }
 
 # Displays messages from program
-cmd_msg() {
+func_msg() {
 	echo "$@"
 }
 
 # Catches/displays error messages from program
-cmd_err() {
+func_err() {
 	echo "Error:" "$@"
 }
 
 case $1 in
-	init    | initialize ) shift; cmd_init    "$@" ;;
+	init	| initialize ) shift; cmd_init    "$@" ;;
 	ins     | insert     ) shift; cmd_ins     "$@" ;;
 	gen     | generate   ) shift; cmd_gen     "$@" ;;
 	show                 ) shift; cmd_show    "$@" ;;
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
-	*                    ) shift; cmd_err "Unknown command: please use mp help for more details" ;;
+	*                    ) shift; func_err "Unknown command: please use mp help for more details" ;;
 esac
 
 exit 0
