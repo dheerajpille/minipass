@@ -31,7 +31,7 @@ cmd_ins() {
 		  esac
 	done
 
-	# Enables echo option if multiline is flagged
+	# Sets echo option if multiline is flagged
 	if [ "$multiline" = true ] ; then
 		echo=true
 	fi
@@ -95,7 +95,6 @@ cmd_show() {
 
 # Generates random password
 cmd_gen() {
-	# add alphanumeric flag
 	local LOWER_CHECK='^.*[a-z]+.*$'
 	local UPPER_CHECK='^.*[A-Z]+.*$'
 	local NUMBER_CHECK='^.*[0-9]+.*$'
@@ -105,37 +104,54 @@ cmd_gen() {
 	local NUMBER_STATE=false
 	local SPECIAL_STATE=false
 
+	local ALPHANUMERIC=false
+
+	local opts=`getopt -o a --long alphanumeric -n 'parse-options' -- "$@"`
+	eval set -- "$opts"
+
+	while true ; do
+		case "$1" in
+		    -a | --alphanumeric		)	 ALPHANUMERIC=true; shift ;;
+			--              		)				 shift; break ;;
+			*                		)				 shift; break ;;
+		  esac
+	done
+
 	if [ "$#" -eq 1 ] ; then
-		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]]
-		then
-			while true
-			do
-				local gen_pwd="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
-				if [[ "$gen_pwd" =~ $LOWER_CHECK ]] ; then 
+		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
+			while true ; do
+				if [ "$ALPHANUMERIC" = true ] ; then
+					local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9 | head -c $1 ; echo '')"
+				else
+					local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
+				fi
+				if [[ "$GEN_PWD" =~ $LOWER_CHECK ]] ; then 
 					LOWER_STATE=true
 				else
 					LOWER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $UPPER_CHECK ]] ; then
+				if [[ "$GEN_PWD" =~ $UPPER_CHECK ]] ; then
 					UPPER_STATE=true
 				else
 					UPPER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $NUMBER_CHECK ]] ; then
+				if [[ "$GEN_PWD" =~ $NUMBER_CHECK ]] ; then
 					NUMBER_STATE=true
 				else
 					NUMBER_STATE=false
 				fi
-				if [[ "$gen_pwd" =~ $SPECIAL_CHECK ]] ; then
+				if [[ "$GEN_PWD" =~ $SPECIAL_CHECK ]] ; then
 					SPECIAL_STATE=true
 				else
 					SPECIAL_STATE=false
 				fi
-				if [ "$LOWER_STATE" = true ] && [ "$UPPER_STATE" = true ] && [ "$NUMBER_STATE" = true ] && [ "$SPECIAL_STATE" = true ] ; then
-					break
+				if [ "$LOWER_STATE" = true ] && [ "$UPPER_STATE" = true ] && [ "$NUMBER_STATE" = true ] ; then
+					if [ "$ALPHANUMERIC" = true ] || [ "$SPECIAL_STATE" = true ] ; then 
+						break
+					fi
 				fi
 			done
-			echo "$gen_pwd"
+			echo "$GEN_PWD"
 		else
 			func_err "Expected valid numerical argument greater than or equal to 4"
 		fi
@@ -148,16 +164,16 @@ cmd_gen() {
 # Removes password from specified domain from password system
 cmd_rm() {
 	local INPUT=""
-	local YES=false
+	local FORCE=false
 
-	local opts=`getopt -o y --long yes -n 'parse-options' -- "$@"`
+	local opts=`getopt -o y --long FORCE -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
 	while true ; do
 		case "$1" in
-		    -y | --yes )		YES=true; shift ;;
-			--         )           shift; break ;;
-			*          )           shift; break ;;
+		    -f | --force )		FORCE=true; shift ;;
+			--           )           shift; break ;;
+			*            )           shift; break ;;
 		  esac
 	done
 
@@ -167,7 +183,7 @@ cmd_rm() {
 	fi
 
 	if [ "$#" -eq 0 ] ; then
-		if [ "$YES" = true ] ; then
+		if [ "$FORCE" = true ] ; then
 			rm "$HOME"/.minipass
 		else
 			while true ; do
@@ -185,7 +201,7 @@ cmd_rm() {
 		fi
 	elif [ "$#" -eq 1 ] ; then
 		if [ -f "$HOME"/.minipass/"$1" ] ; then
-			if [ "$YES" = true ] ; then
+			if [ "$FORCE" = true ] ; then
 				rm "$HOME"/.minipass/"$1"
 			else
 				while true ; do
@@ -206,7 +222,7 @@ cmd_rm() {
 		fi
 	elif [ "$#" -eq 2 ] ; then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
-			if [ "$YES" = true ] ; then
+			if [ "$FORCE" = true ] ; then
 				rm "$HOME"/.minipass/"$1"/"$2".gpg
 			else
 				while true ; do
