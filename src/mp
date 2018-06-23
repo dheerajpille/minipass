@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Creates initial password system file directory
 # Modulaize a bit more of the repetitive stuff
-# Make variables capitalized?
+
+# Creates initial password system file directory
 cmd_init() {
 	if [ "$#" -gt 0 ] ; then
 		func_err "Too many arguments."
@@ -24,10 +24,10 @@ cmd_ins() {
 
 	while true ; do
 		case "$1" in
-		    -e | --echo      )			 ECHO=true; shift ;;
-		    -m | --multiline )		MULTILINE=true; shift ;;
-			--               )				 shift; break ;;
-			*                )				 shift; break ;;
+		    -e | --echo      )      ECHO=true; shift ;;
+		    -m | --multiline ) MULTILINE=true; shift ;;
+			--               )          shift; break ;;
+			*                )          shift; break ;;
 		  esac
 	done
 
@@ -156,17 +156,15 @@ cmd_gen() {
 			func_err "Expected valid numerical argument greater than or equal to 4"
 		fi
 	else
-		echo "$1"
 		func_err "Incorrect number of arguments"
 	fi
 }
 
 # Removes password from specified domain from password system
 cmd_rm() {
-	local INPUT=""
 	local FORCE=false
 
-	local opts=`getopt -o y --long FORCE -n 'parse-options' -- "$@"`
+	local opts=`getopt -o f --long force -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
 	while true ; do
@@ -184,13 +182,13 @@ cmd_rm() {
 
 	if [ "$#" -eq 0 ] ; then
 		if [ "$FORCE" = true ] ; then
-			rm "$HOME"/.minipass
+			rm -rf "$HOME"/.minipass
 		else
 			while true ; do
 				printf "Remove password system for $USER? (y/n): "
 				read INPUT
 				if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
-					rm "$HOME"/.minipass
+					rm -rf "$HOME"/.minipass
 					break
 				elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
 					break
@@ -200,15 +198,15 @@ cmd_rm() {
 			done
 		fi
 	elif [ "$#" -eq 1 ] ; then
-		if [ -f "$HOME"/.minipass/"$1" ] ; then
+		if [ -d "$HOME"/.minipass/"$1" ] ; then
 			if [ "$FORCE" = true ] ; then
-				rm "$HOME"/.minipass/"$1"
+				rm -rf "$HOME"/.minipass/"$1"
 			else
 				while true ; do
 					printf "Remove password for $2 in domain $1? (y/n): "
 					read INPUT
 					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
-						rm "$HOME"/.minipass/"$1"
+						rm -rf "$HOME"/.minipass/"$1"
 						break
 					elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
 						break
@@ -223,13 +221,13 @@ cmd_rm() {
 	elif [ "$#" -eq 2 ] ; then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
 			if [ "$FORCE" = true ] ; then
-				rm "$HOME"/.minipass/"$1"/"$2".gpg
+				rm -rf "$HOME"/.minipass/"$1"/"$2".gpg
 			else
 				while true ; do
 					printf "Remove password for $2 in domain $1? (y/n): "
 					read INPUT
 					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
-						rm "$HOME"/.minipass/"$1"/"$2".gpg
+						rm -rf "$HOME"/.minipass/"$1"/"$2".gpg
 						break
 					elif [[ "$INPUT" = [nN] ]]|| [[ "$INPUT" = [nN][oO] ]] ; then
 						break
@@ -244,6 +242,16 @@ cmd_rm() {
 	else
 		func_err "Incorrect number of arguments"
 	fi
+}
+
+# Displays content of password system as a tree
+cmd_tree(){
+	tree "$HOME"/.minipass/
+}
+
+# Shows all available commands
+cmd_help(){
+	echo "TODO"
 }
 
 # Displays messages from program
@@ -262,7 +270,9 @@ case $1 in
 	gen     | generate   ) shift; cmd_gen     "$@" ;;
 	show                 ) shift; cmd_show    "$@" ;;
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
-	*                    ) shift; func_err "Unknown command: please use mp help for more details" ;;
+	tree                 ) shift; cmd_tree    "$@" ;;
+	help                 ) shift; cmd_help    "$@" ;;
+	*                    ) shift; func_err    "Unknown command: please use mp help for more details" ;;
 esac
 
 exit 0
