@@ -225,7 +225,10 @@ cmd_rm() {
 			else
 				while true ; do
 					printf "Remove password for $2 in domain $1? (y/n): "
-					read INPUT
+					read INPUT> Removing Debian Cron job and duplicate product logos...
+==> Tidying install...
+  -> Removing empty directories...
+  -> Rem
 					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
 						rm -rf "$HOME"/.minipass/"$1"/"$2".gpg
 						break
@@ -245,12 +248,26 @@ cmd_rm() {
 }
 
 # Displays content of password system as a tree
-cmd_tree(){
-	tree "$HOME"/.minipass/
+cmd_tree() {
+	if [ -d "$HOME"/.minipass/ ]; then
+		if [ "$#" -eq 0 ]; then
+			tree "$HOME"/.minipass/
+		elif [ "$#" -eq 1 ]; then
+			if [ -d "$HOME"/.minipass/"$1" ]; then
+				tree "$HOME"/.minipass/"$1"
+			else
+				func_err "$1 directory not found for" "$USER"
+			fi
+		else
+			func_err "Incorrect number of arguments"
+		fi
+	else
+		func_err "Password system nonexistant for" "$USER" 
+	fi
 }
 
 # Shows all available commands
-cmd_help(){
+cmd_help() {
 	echo "TODO"
 }
 
