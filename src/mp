@@ -225,10 +225,7 @@ cmd_rm() {
 			else
 				while true ; do
 					printf "Remove password for $2 in domain $1? (y/n): "
-					read INPUT> Removing Debian Cron job and duplicate product logos...
-==> Tidying install...
-  -> Removing empty directories...
-  -> Rem
+					read INPUT
 					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
 						rm -rf "$HOME"/.minipass/"$1"/"$2".gpg
 						break
