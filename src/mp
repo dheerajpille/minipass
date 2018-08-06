@@ -32,8 +32,8 @@ cmd_ins() {
 	done
 
 	# Sets echo option if multiline is flagged
-	if [ "$multiline" = true ] ; then
-		echo=true
+	if [ "$MULTILINE" = true ] ; then
+		ECHO=true
 	fi
 
 	if [ -d "$HOME"/.minipass/ ] ; then
@@ -53,7 +53,7 @@ cmd_ins() {
 			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
 				func_err "Username exists for domain" "$1"
 			else
-				# Add check if password is empty?
+				# TODO: add check if password is empty?
 				printf "Password: "
 				if [ "$ECHO" = true ] ; then
 					if [ "$MULTILINE" = true ] ; then
@@ -66,7 +66,7 @@ cmd_ins() {
 				fi
 				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
-				# Maybe do this in temporary files, since this shows up in trash currently
+				# TODO: maybe do this in temporary files, since this shows up in trash currently
 				rm "$HOME"/.minipass/"$1"/"$USERNAME"
 			fi 
 		else
@@ -117,7 +117,7 @@ cmd_gen() {
 		  esac
 	done
 
-	if [ "$#" -eq 1 ] ; then
+	if [ "$#" -eq 2 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
 			while true ; do
 				if [ "$ALPHANUMERIC" = true ] ; then
@@ -203,7 +203,7 @@ cmd_rm() {
 				rm -rf "$HOME"/.minipass/"$1"
 			else
 				while true ; do
-					printf "Remove password for $2 in domain $1? (y/n): "
+					printf "Remove all passwords in domain $1? (y/n): "
 					read INPUT
 					if [[ "$INPUT" = [yY] ]] || [[ "$INPUT" = [yY][eE][sS] ]] ; then
 						rm -rf "$HOME"/.minipass/"$1"
@@ -268,6 +268,7 @@ cmd_help() {
 	echo "TODO"
 }
 
+# Shows minipass version information
 cmd_ver() {
 	echo "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
 }
@@ -281,6 +282,8 @@ func_msg() {
 func_err() {
 	echo "Error:" "$@"
 }
+
+# TODO: how to break out of a function
 
 case $1 in
 	init	| initialize ) shift; cmd_init    "$@" ;;
