@@ -248,7 +248,7 @@ cmd_rm() {
 cmd_tree() {
 	if [ -d "$HOME"/.minipass/ ]; then
 		if [ "$#" -eq 0 ]; then
-			tree "$HOME"/.minipass/
+			tree "$HOME"/.minipass/	
 		elif [ "$#" -eq 1 ]; then
 			if [ -d "$HOME"/.minipass/"$1" ]; then
 				tree "$HOME"/.minipass/"$1"
@@ -268,6 +268,10 @@ cmd_help() {
 	echo "TODO"
 }
 
+cmd_ver() {
+	echo "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
+}
+
 # Displays messages from program
 func_msg() {
 	echo "$@"
@@ -285,7 +289,8 @@ case $1 in
 	show                 ) shift; cmd_show    "$@" ;;
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
 	tree                 ) shift; cmd_tree    "$@" ;;
-	help                 ) shift; cmd_help    "$@" ;;
+	--help               ) shift; cmd_help    "$@" ;;
+    --version            ) shift; cmd_ver     "$@" ;;
 	*                    ) shift; func_err    "Unknown command: please use mp help for more details" ;;
 esac
 
