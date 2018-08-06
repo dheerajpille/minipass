@@ -20,13 +20,10 @@ func_syscheck() {
 }
 
 # Exits script if number of arguments is invalid
-#func_argcheck() {
-#	if [ ! -d "$HOME"/.minipass ]
-#	then
-#		func_err "Password system nonexistant for" "$USER" 
-#		exit 1
-#	fi
-#}
+func_argcheck() {
+	echo "$#"
+	exit 1
+}
 
 # Creates initial password system file directory
 cmd_init() {
@@ -103,6 +100,8 @@ cmd_ins() {
 
 # Shows password for specified domain and username/login credentials
 cmd_show() {
+	func_syscheck
+	
 	if [ "$#" -eq 2 ] 
 	then
 		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
@@ -140,6 +139,8 @@ cmd_gen() {
 			*                		)				 shift; break ;;
 		  esac
 	done
+
+	func_syscheck
 
 	if [ "$#" -eq 2 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
@@ -199,10 +200,7 @@ cmd_rm() {
 		esac
 	done
 
-	if [ ! -d "$HOME"/.minipass/ ] ; then
-		func_err "Password system nonexistant for" "$USER" 
-		return
-	fi
+	func_syscheck
 
 	if [ "$#" -eq 0 ] ; then
 		if [ "$FORCE" = true ] ; then
@@ -270,20 +268,18 @@ cmd_rm() {
 
 # Displays content of password system as a tree
 cmd_tree() {
-	if [ -d "$HOME"/.minipass/ ]; then
-		if [ "$#" -eq 0 ]; then
-			tree "$HOME"/.minipass/	
-		elif [ "$#" -eq 1 ]; then
-			if [ -d "$HOME"/.minipass/"$1" ]; then
-				tree "$HOME"/.minipass/"$1"
-			else
-				func_err "$1 directory not found for" "$USER"
-			fi
+	func_syscheck
+
+	if [ "$#" -eq 0 ]; then
+		tree "$HOME"/.minipass/	
+	elif [ "$#" -eq 1 ]; then
+		if [ -d "$HOME"/.minipass/"$1" ]; then
+			tree "$HOME"/.minipass/"$1"
 		else
-			func_err "Incorrect number of arguments"
+			func_err "$1 directory not found for" "$USER"
 		fi
 	else
-		func_err "Password system nonexistant for" "$USER" 
+		func_err "Incorrect number of arguments"
 	fi
 }
 
