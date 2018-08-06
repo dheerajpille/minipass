@@ -1,6 +1,32 @@
 #!/bin/bash
 
-# Modulaize a bit more of the repetitive stuff
+# Displays messages from program
+func_msg() {
+	echo "$@"
+}
+
+# Catches/displays error messages from program
+func_err() {
+	echo "Error:" "$@"
+}
+
+# Exits script if password system is not found
+func_syscheck() {
+	if [ ! -d "$HOME"/.minipass ]
+	then
+		func_err "Password system nonexistant for" "$USER" 
+		exit 1
+	fi
+}
+
+# Exits script if number of arguments is invalid
+#func_argcheck() {
+#	if [ ! -d "$HOME"/.minipass ]
+#	then
+#		func_err "Password system nonexistant for" "$USER" 
+#		exit 1
+#	fi
+#}
 
 # Creates initial password system file directory
 cmd_init() {
@@ -36,44 +62,42 @@ cmd_ins() {
 		ECHO=true
 	fi
 
-	if [ -d "$HOME"/.minipass/ ] ; then
-		if [ "$#" -eq 1 ] ; then
-			if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
-				mkdir "$HOME"/.minipass/"$1"/
-			fi
-			while true ; do
-				printf "Username: "
-				read USERNAME
-				if [ -z "$USERNAME" ] ; then
-					echo "Username is empty. Please enter a non-empty username."
-				else 
-					break
-				fi
-			done
-			if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-				func_err "Username exists for domain" "$1"
-			else
-				# TODO: add check if password is empty?
-				printf "Password: "
-				if [ "$ECHO" = true ] ; then
-					if [ "$MULTILINE" = true ] ; then
-						PASSWORD=$(</dev/stdin)
-					else
-						read -r PASSWORD
-					fi
-				else
-					read -r -s PASSWORD && echo
-				fi
-				echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
-				gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
-				# TODO: maybe do this in temporary files, since this shows up in trash currently
-				rm "$HOME"/.minipass/"$1"/"$USERNAME"
-			fi 
-		else
-			func_err "Incorrect number of arguments"
+	func_syscheck
+
+	if [ "$#" -eq 1 ] ; then
+		if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
+			mkdir "$HOME"/.minipass/"$1"/
 		fi
+		while true ; do
+			printf "Username: "
+			read USERNAME
+			if [ -z "$USERNAME" ] ; then
+				echo "Username is empty. Please enter a non-empty username."
+			else 
+				break
+			fi
+		done
+		if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
+			func_err "Username exists for domain" "$1"
+		else
+			# TODO: add check if password is empty?
+			printf "Password: "
+			if [ "$ECHO" = true ] ; then
+				if [ "$MULTILINE" = true ] ; then
+					PASSWORD=$(</dev/stdin)
+				else
+					read -r PASSWORD
+				fi
+			else
+				read -r -s PASSWORD && echo
+			fi
+			echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
+			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
+			# TODO: maybe do this in temporary files, since this shows up in trash currently
+			rm "$HOME"/.minipass/"$1"/"$USERNAME"
+		fi 
 	else
-		func_err "Password system nonexistant for" "$USER" 
+		func_err "Incorrect number of arguments"
 	fi
 }
 
@@ -172,7 +196,7 @@ cmd_rm() {
 		    -f | --force )		FORCE=true; shift ;;
 			--           )           shift; break ;;
 			*            )           shift; break ;;
-		  esac
+		esac
 	done
 
 	if [ ! -d "$HOME"/.minipass/ ] ; then
@@ -272,18 +296,6 @@ cmd_help() {
 cmd_ver() {
 	echo "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
 }
-
-# Displays messages from program
-func_msg() {
-	echo "$@"
-}
-
-# Catches/displays error messages from program
-func_err() {
-	echo "Error:" "$@"
-}
-
-# TODO: how to break out of a function
 
 case $1 in
 	init	| initialize ) shift; cmd_init    "$@" ;;
