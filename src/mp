@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# TODO: allow user to add in passphrase to not be affected by GPG popup prompt 
+# TODO: allow import/export password systems for multisystem setup (maybe git?)
+# TODO: use XCLIP for easy copy/paste
+
 # Displays messages from program
 func_msg() {
 	echo -e "$@"
