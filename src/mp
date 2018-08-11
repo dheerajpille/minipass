@@ -22,6 +22,7 @@ func_sys_check() {
 # Exits script if number of arguments is invalid
 func_arg_check() {
 	echo "$#"
+	func_err "Incorrect number of arguments. Expected array arguments"
 	exit 1
 }
 
@@ -75,7 +76,7 @@ cmd_ins() {
 			fi
 		done
 		if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-			func_err "Username exists for domain" "$1"
+			func_err "Username" "$USERNAME" "exists for domain" "$1"
 		else
 			# TODO: add check if password is empty?
 			printf "Password: "
@@ -129,13 +130,16 @@ cmd_gen() {
 	local SPECIAL_STATE=false
 
 	local ALPHANUMERIC=false
+	local ECHO=false
 
 	local opts=`getopt -o a --long alphanumeric -n 'parse-options' -- "$@"`
 	eval set -- "$opts"
 
+	# TODO: fix -e not being read (parse-options) failing
 	while true ; do
 		case "$1" in
 		    -a | --alphanumeric		)	 ALPHANUMERIC=true; shift ;;
+		    -e | --echo             )            ECHO=true; shift ;;
 			--              		)				 shift; break ;;
 			*                		)				 shift; break ;;
 		  esac
@@ -177,7 +181,25 @@ cmd_gen() {
 					fi
 				fi
 			done
-			echo "$GEN_PWD"
+			if [ ! -d "$HOME"/.minipass/"$2"/ ] ; then
+				mkdir "$HOME"/.minipass/"$2"/
+			fi
+			while true ; do
+				printf "Username: "
+				read USERNAME
+				if [ -z "$USERNAME" ] ; then
+					echo "Username is empty. Please enter a non-empty username."
+				else 
+					break
+				fi
+			done
+			# TODO: add username check
+			echo -n "$GEN_PWD" > "$HOME"/.minipass/"$2"/"$USERNAME"
+			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$2"/"$USERNAME"
+			rm "$HOME"/.minipass/"$2"/"$USERNAME"
+			if [ "$ECHO" = true ] ; then
+				echo "$GEN_PWD"
+			fi
 		else
 			func_err "Expected valid numerical argument greater than or equal to 4"
 		fi
@@ -295,16 +317,16 @@ cmd_ver() {
 }
 
 case $1 in
-	init	| initialize ) shift; cmd_init    "$@" ;;
+	init    | initialize ) shift; cmd_init    "$@" ;;
 	ins     | insert     ) shift; cmd_ins     "$@" ;;
 	gen     | generate   ) shift; cmd_gen     "$@" ;;
 	show                 ) shift; cmd_show    "$@" ;;
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
 	tree                 ) shift; cmd_tree    "$@" ;;
 	help    | --help     ) shift; cmd_help    "$@" ;;
-    version | --version  ) shift; cmd_ver     "$@" ;;
+	version | --version  ) shift; cmd_ver     "$@" ;;
 	*                    ) shift; func_err    "Unknown command. Please use mp help for more details" ;;
-    # TODO: how to output italics in terminal for mp help
+	# TODO: how to output italics in terminal for mp help
 esac
 
 exit 0
