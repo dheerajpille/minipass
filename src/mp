@@ -299,7 +299,21 @@ cmd_tree() {
 
 # Shows all available commands
 cmd_help() {
-	echo "TODO"
+	func_msg "  usage: mp [ init ] [ -e/-m ins ] [ -a gen ]"
+	func_msg "      [ -f rm ] [ tree ] [--help] [--version]"
+	func_msg "  ----------------- Options -----------------"
+	func_msg "  init | initialize                           -> Creates password system for the current user in their HOME directory"
+	func_msg "  ins  | insert     <domain-name>             -> Adds new username and password credentials to password system"
+	func_msg "    -e | echo         -> Displays password input"
+	func_msg "    -m | multiline    -> Enables multiline password input and echoes it"
+	func_msg "  gen  | generate   <pw-length> <domain-name> -> Generates password given length and stores in password system"
+	func_msg "    -a | alphanumeric -> Generates password without special characters"
+	func_msg "  show              <domain-name> <user-name> -> Displays stored password from password system"
+	func_msg "  rm   | remove     <domain-name> <user-name> -> Removes username/password, domain, or system, depending on parameters given"
+	func_msg "    -f | force        -> Bypasses removal prompt(s)"
+	func_msg "  tree              <domain-name>             -> Shows tree display of password system or domain if given"
+	func_msg "  help | --help                               -> Displays minipass help manual"
+	func_msg "  ver  | --version                            -> Displays version and contributor details"
 }
 
 # Shows minipass version information
@@ -321,8 +335,8 @@ case $1 in
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
 	tree                 ) shift; cmd_tree    "$@" ;;
 	help    | --help     ) shift; cmd_help    "$@" ;;
-	version | --version  ) shift; cmd_ver     "$@" ;;
-	*                    ) shift; func_err    "Unknown command. Please use \e[3mmp help\e[0m for more details" ;;
+	ver     | --version  ) shift; cmd_ver     "$@" ;;
+	*                    ) shift; func_err    "Unknown command. Please use \e[3mmp help\e[0m for more details." ;;
 esac
 
 exit 0
