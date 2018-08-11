@@ -70,31 +70,29 @@ cmd_ins() {
 			printf "Username: "
 			read USERNAME
 			if [ -z "$USERNAME" ] ; then
-				echo "Username is empty. Please enter a non-empty username."
+				func_msg "Username is empty. Please enter a non-empty username."
+			elif [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
+				func_err "Username" "$USERNAME" "exists for domain" "$1"
 			else 
 				break
 			fi
 		done
-		if [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-			func_err "Username" "$USERNAME" "exists for domain" "$1"
-		else
-			# TODO: add check if password is empty?
-			printf "Password: "
-			if [ "$ECHO" = true ] ; then
-				if [ "$MULTILINE" = true ] ; then
-					PASSWORD=$(</dev/stdin)
-				else
-					read -r PASSWORD
-				fi
+		# TODO: add check if password is empty?
+		printf "Password: "
+		if [ "$ECHO" = true ] ; then
+			if [ "$MULTILINE" = true ] ; then
+				PASSWORD=$(</dev/stdin)
 			else
-				read -r -s PASSWORD && echo
+				read -r PASSWORD
 			fi
-			echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
-			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
-			# TODO: maybe do this in temporary files, since this shows up in trash currently
-			# TODO: see if this still exists or may have been fixed
-			rm "$HOME"/.minipass/"$1"/"$USERNAME"
-		fi 
+		else
+			read -r -s PASSWORD && echo
+		fi
+		echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
+		gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
+		# TODO: maybe do this in temporary files, since this shows up in trash currently
+		# TODO: see if this still exists or may have been fixed
+		rm "$HOME"/.minipass/"$1"/"$USERNAME"
 	else
 		func_err "Incorrect number of arguments"
 	fi
@@ -138,14 +136,17 @@ cmd_gen() {
 	# TODO: fix -e not being read (parse-options) failing
 	while true ; do
 		case "$1" in
-		    -a | --alphanumeric		)	 ALPHANUMERIC=true; shift ;;
-		    -e | --echo             )            ECHO=true; shift ;;
-			--              		)				 shift; break ;;
-			*                		)				 shift; break ;;
+			-a | --alphanumeric )	 ALPHANUMERIC=true; shift ;;
+		    -e | --echo         )            ECHO=true; shift ;;
+			--              	)				 shift; break ;;
+			*                	)				 shift; break ;;
 		  esac
 	done
 
 	func_sys_check
+
+	# echo "$ALPHANUMERIC"
+	# echo "$ECHO"
 
 	if [ "$#" -eq 2 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
@@ -188,12 +189,13 @@ cmd_gen() {
 				printf "Username: "
 				read USERNAME
 				if [ -z "$USERNAME" ] ; then
-					echo "Username is empty. Please enter a non-empty username."
+					func_msg "Username is empty. Please enter a non-empty username."
+				elif [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
+					func_err "Username" "$USERNAME" "exists for domain" "$1"
 				else 
 					break
 				fi
 			done
-			# TODO: add username check
 			echo -n "$GEN_PWD" > "$HOME"/.minipass/"$2"/"$USERNAME"
 			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$2"/"$USERNAME"
 			rm "$HOME"/.minipass/"$2"/"$USERNAME"
