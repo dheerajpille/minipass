@@ -33,9 +33,11 @@ func_arg_check() {
 
 # Creates initial password system file directory
 cmd_init() {
-	if [ "$#" -gt 0 ] ; then
-		func_err "Too many arguments."
-	elif [ -d "$HOME"/.minipass/ ] ; then
+	local ARG_NUM=(0)
+
+	func_arg_check ARG_NUM[@] "$@"
+	
+	if [ -d "$HOME"/.minipass/ ] ; then
 		func_err "Password system exists for" "$USER"
 	else
 		mkdir $HOME/.minipass/
@@ -45,7 +47,6 @@ cmd_init() {
 
 # Inserts password for specified domain to password system
 cmd_ins() {
-
 	local ARG_NUM=(1)
 	
 	local ECHO=false
@@ -101,24 +102,24 @@ cmd_ins() {
 
 # Shows password for specified domain and username/login credentials
 cmd_show() {
+	local ARG_NUM=(2)
+
 	func_sys_check
+	func_arg_check ARG_NUM[@] "$@"
 	
-	if [ "$#" -eq 2 ] 
-	then
-		if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
-			gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
-			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
-			rm "$HOME"/.minipass/"$1"/"$2"
-		else
-			func_err "Password nonexistant for domain and username"
-		fi
+	if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
+		gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
+		cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
+		rm "$HOME"/.minipass/"$1"/"$2"
 	else
-		func_err "Incorrect number of arguments"
+		func_err "Password nonexistant for domain and username"
 	fi
 }
 
 # Generates random password
 cmd_gen() {
+	local ARG_NUM=(2)
+
 	local LOWER_CHECK='^.*[a-z]+.*$'
 	local UPPER_CHECK='^.*[A-Z]+.*$'
 	local NUMBER_CHECK='^.*[0-9]+.*$'
@@ -145,72 +146,70 @@ cmd_gen() {
 	done
 
 	func_sys_check
+	func_arg_check ARG_NUM[@] "$@"
 
 	# echo "$ALPHANUMERIC"
 	# echo "$ECHO"
-
-	if [ "$#" -eq 2 ] ; then
-		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
-			while true ; do
-				if [ "$ALPHANUMERIC" = true ] ; then
-					local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9 | head -c $1 ; echo '')"
-				else
-					local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
-				fi
-				if [[ "$GEN_PWD" =~ $LOWER_CHECK ]] ; then 
-					LOWER_STATE=true
-				else
-					LOWER_STATE=false
-				fi
-				if [[ "$GEN_PWD" =~ $UPPER_CHECK ]] ; then
-					UPPER_STATE=true
-				else
-					UPPER_STATE=false
-				fi
-				if [[ "$GEN_PWD" =~ $NUMBER_CHECK ]] ; then
-					NUMBER_STATE=true
-				else
-					NUMBER_STATE=false
-				fi
-				if [[ "$GEN_PWD" =~ $SPECIAL_CHECK ]] ; then
-					SPECIAL_STATE=true
-				else
-					SPECIAL_STATE=false
-				fi
-				if [ "$LOWER_STATE" = true ] && [ "$UPPER_STATE" = true ] && [ "$NUMBER_STATE" = true ] ; then
-					if [ "$ALPHANUMERIC" = true ] || [ "$SPECIAL_STATE" = true ] ; then 
-						break
-					fi
-				fi
-			done
-			if [ ! -d "$HOME"/.minipass/"$2"/ ] ; then
-				mkdir "$HOME"/.minipass/"$2"/
+	if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
+		while true ; do
+			if [ "$ALPHANUMERIC" = true ] ; then
+				local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9 | head -c $1 ; echo '')"
+			else
+				local GEN_PWD="$(head /dev/urandom | tr -dc a-zA-Z0-9!#\$%\&\(\)*+,-./:\;\<\=\>?@\\^_\`{\|}~ | head -c $1 ; echo '')"
 			fi
-			while true ; do
-				printf "Username: "
-				read USERNAME
-				if [ -z "$USERNAME" ] ; then
-					func_msg "Username is empty. Please enter a non-empty username."
-				else 
+			if [[ "$GEN_PWD" =~ $LOWER_CHECK ]] ; then 
+				LOWER_STATE=true
+			else
+				LOWER_STATE=false
+			fi
+			if [[ "$GEN_PWD" =~ $UPPER_CHECK ]] ; then
+				UPPER_STATE=true
+			else
+				UPPER_STATE=false
+			fi
+			if [[ "$GEN_PWD" =~ $NUMBER_CHECK ]] ; then
+				NUMBER_STATE=true
+			else
+				NUMBER_STATE=false
+			fi
+			if [[ "$GEN_PWD" =~ $SPECIAL_CHECK ]] ; then
+				SPECIAL_STATE=true
+			else
+				SPECIAL_STATE=false
+			fi
+			if [ "$LOWER_STATE" = true ] && [ "$UPPER_STATE" = true ] && [ "$NUMBER_STATE" = true ] ; then
+				if [ "$ALPHANUMERIC" = true ] || [ "$SPECIAL_STATE" = true ] ; then 
 					break
 				fi
-			done
-			echo -n "$GEN_PWD" > "$HOME"/.minipass/"$2"/"$USERNAME"
-			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$2"/"$USERNAME"
-			rm "$HOME"/.minipass/"$2"/"$USERNAME"
-			if [ "$ECHO" = true ] ; then
-				echo "$GEN_PWD"
 			fi
-		else
-			func_err "Expected valid numerical argument greater than or equal to 4"
+		done
+		if [ ! -d "$HOME"/.minipass/"$2"/ ] ; then
+			mkdir "$HOME"/.minipass/"$2"/
+		fi
+		while true ; do
+			printf "Username: "
+			read USERNAME
+			if [ -z "$USERNAME" ] ; then
+				func_msg "Username is empty. Please enter a non-empty username."
+			else 
+				break
+			fi
+		done
+		echo -n "$GEN_PWD" > "$HOME"/.minipass/"$2"/"$USERNAME"
+		gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$2"/"$USERNAME"
+		rm "$HOME"/.minipass/"$2"/"$USERNAME"
+		if [ "$ECHO" = true ] ; then
+			echo "$GEN_PWD"
 		fi
 	else
-		func_err "Incorrect number of arguments"
+		func_err "Expected valid numerical argument greater than or equal to 4"
 	fi
 }
 
 # Removes password from specified domain from password system
 cmd_rm() {
+	local ARG_NUM=(0 1 2)
+
 	local FORCE=false
 
 	local opts=`getopt -o f --long force -n 'parse-options' -- "$@"`
@@ -225,6 +224,7 @@ cmd_rm() {
 	done
 
 	func_sys_check
+	func_arg_check ARG_NUM[@] "$@"
 
 	if [ "$#" -eq 0 ] ; then
 		if [ "$FORCE" = true ] ; then
@@ -285,14 +285,15 @@ cmd_rm() {
 		else
 			func_err "Username $2 nonexistant for domain $1"
 		fi
-	else
-		func_err "Incorrect number of arguments"
 	fi
 }
 
 # Displays content of password system as a tree
 cmd_tree() {
+	local ARG_NUM=(0 1)
+
 	func_sys_check
+	func_arg_check ARG_NUM[@] "$@"
 
 	if [ "$#" -eq 0 ]; then
 		tree "$HOME"/.minipass/	
@@ -302,8 +303,6 @@ cmd_tree() {
 		else
 			func_err "$1 directory not found for" "$USER"
 		fi
-	else
-		func_err "Incorrect number of arguments"
 	fi
 }
 
