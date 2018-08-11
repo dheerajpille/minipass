@@ -314,6 +314,12 @@ cmd_help() {
 
 # Shows minipass version information
 cmd_ver() {
+	func_msg "███╗   ███╗██████╗" 
+	func_msg "████╗ ████║██╔══██╗"
+	func_msg "██╔████╔██║██████╔╝"
+	func_msg "██║╚██╔╝██║██╔═══╝"
+	func_msg "██║ ╚═╝ ██║██║"
+	func_msg "╚═╝     ╚═╝╚═╝"
 	func_msg "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
 }
 
