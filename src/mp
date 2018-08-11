@@ -71,8 +71,6 @@ cmd_ins() {
 			read USERNAME
 			if [ -z "$USERNAME" ] ; then
 				func_msg "Username is empty. Please enter a non-empty username."
-			elif [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-				func_err "Username" "$USERNAME" "exists for domain" "$1"
 			else 
 				break
 			fi
@@ -190,8 +188,6 @@ cmd_gen() {
 				read USERNAME
 				if [ -z "$USERNAME" ] ; then
 					func_msg "Username is empty. Please enter a non-empty username."
-				elif [ -f "$HOME"/.minipass/"$1"/"$USERNAME".gpg ] ; then 
-					func_err "Username" "$USERNAME" "exists for domain" "$1"
 				else 
 					break
 				fi
