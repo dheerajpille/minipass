@@ -21,8 +21,13 @@ func_sys_check() {
 
 # Exits script if number of arguments is invalid
 func_arg_check() {
-	echo "$#"
-	func_err "Incorrect number of arguments. Expected array arguments"
+    declare -a ARG_CHECK=("${!1}")
+    for i in "${ARG_CHECK[@]}" ; do
+		if [ $(("$#"-1)) -eq $i ] ; then
+			return
+		fi
+	done
+	func_err "Incorrect number of arguments. Expected" "${ARG_CHECK[@]}" "argument(s)."
 	exit 1
 }
 
@@ -40,6 +45,9 @@ cmd_init() {
 
 # Inserts password for specified domain to password system
 cmd_ins() {
+
+	local ARG_NUM=(1)
+	
 	local ECHO=false
 	local MULTILINE=false
 
@@ -61,39 +69,34 @@ cmd_ins() {
 	fi
 
 	func_sys_check
+	func_arg_check ARG_NUM[@] "$@"
 
-	if [ "$#" -eq 1 ] ; then
-		if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
-			mkdir "$HOME"/.minipass/"$1"/
-		fi
-		while true ; do
-			printf "Username: "
-			read USERNAME
-			if [ -z "$USERNAME" ] ; then
-				func_msg "Username is empty. Please enter a non-empty username."
-			else 
-				break
-			fi
-		done
-		# TODO: add check if password is empty?
-		printf "Password: "
-		if [ "$ECHO" = true ] ; then
-			if [ "$MULTILINE" = true ] ; then
-				PASSWORD=$(</dev/stdin)
-			else
-				read -r PASSWORD
-			fi
-		else
-			read -r -s PASSWORD && echo
-		fi
-		echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
-		gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
-		# TODO: maybe do this in temporary files, since this shows up in trash currently
-		# TODO: see if this still exists or may have been fixed
-		rm "$HOME"/.minipass/"$1"/"$USERNAME"
-	else
-		func_err "Incorrect number of arguments"
+	if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
+		mkdir "$HOME"/.minipass/"$1"/
 	fi
+	while true ; do
+		printf "Username: "
+		read USERNAME
+		if [ -z "$USERNAME" ] ; then
+			func_msg "Username is empty. Please enter a non-empty username."
+		else 
+			break
+		fi
+	done
+	# TODO: add check if password is empty?
+	printf "Password: "
+	if [ "$ECHO" = true ] ; then
+		if [ "$MULTILINE" = true ] ; then
+			PASSWORD=$(</dev/stdin)
+		else
+			read -r PASSWORD
+		fi
+	else
+		read -r -s PASSWORD && echo
+	fi
+	echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
+	gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
+	rm "$HOME"/.minipass/"$1"/"$USERNAME"
 }
 
 # Shows password for specified domain and username/login credentials
@@ -311,7 +314,7 @@ cmd_help() {
 
 # Shows minipass version information
 cmd_ver() {
-	echo "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
+	func_msg "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
 }
 
 case $1 in
