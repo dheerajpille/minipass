@@ -11,7 +11,7 @@ func_err() {
 }
 
 # Exits script if password system is not found
-func_syscheck() {
+func_sys_check() {
 	if [ ! -d "$HOME"/.minipass ]
 	then
 		func_err "Password system nonexistant for" "$USER" 
@@ -20,7 +20,7 @@ func_syscheck() {
 }
 
 # Exits script if number of arguments is invalid
-func_argcheck() {
+func_arg_check() {
 	echo "$#"
 	exit 1
 }
@@ -59,7 +59,7 @@ cmd_ins() {
 		ECHO=true
 	fi
 
-	func_syscheck
+	func_sys_check
 
 	if [ "$#" -eq 1 ] ; then
 		if [ ! -d "$HOME"/.minipass/"$1"/ ] ; then
@@ -91,6 +91,7 @@ cmd_ins() {
 			echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 			gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
 			# TODO: maybe do this in temporary files, since this shows up in trash currently
+			# TODO: see if this still exists or may have been fixed
 			rm "$HOME"/.minipass/"$1"/"$USERNAME"
 		fi 
 	else
@@ -100,7 +101,7 @@ cmd_ins() {
 
 # Shows password for specified domain and username/login credentials
 cmd_show() {
-	func_syscheck
+	func_sys_check
 	
 	if [ "$#" -eq 2 ] 
 	then
@@ -140,7 +141,7 @@ cmd_gen() {
 		  esac
 	done
 
-	func_syscheck
+	func_sys_check
 
 	if [ "$#" -eq 2 ] ; then
 		if [[ "$1" =~ $num_regex && "$1" -ge 4 ]] ; then
@@ -200,7 +201,7 @@ cmd_rm() {
 		esac
 	done
 
-	func_syscheck
+	func_sys_check
 
 	if [ "$#" -eq 0 ] ; then
 		if [ "$FORCE" = true ] ; then
@@ -268,7 +269,7 @@ cmd_rm() {
 
 # Displays content of password system as a tree
 cmd_tree() {
-	func_syscheck
+	func_sys_check
 
 	if [ "$#" -eq 0 ]; then
 		tree "$HOME"/.minipass/	
@@ -300,9 +301,10 @@ case $1 in
 	show                 ) shift; cmd_show    "$@" ;;
 	rm      | remove     ) shift; cmd_rm      "$@" ;;
 	tree                 ) shift; cmd_tree    "$@" ;;
-	--help               ) shift; cmd_help    "$@" ;;
-    --version            ) shift; cmd_ver     "$@" ;;
-	*                    ) shift; func_err    "Unknown command: please use mp help for more details" ;;
+	help    | --help     ) shift; cmd_help    "$@" ;;
+    version | --version  ) shift; cmd_ver     "$@" ;;
+	*                    ) shift; func_err    "Unknown command. Please use mp help for more details" ;;
+    # TODO: how to output italics in terminal for mp help
 esac
 
 exit 0
