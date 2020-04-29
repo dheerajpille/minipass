@@ -108,12 +108,32 @@ cmd_ins() {
 cmd_show() {
 	local ARG_NUM=(2)
 
+	local COPY=false
+
+	local opts=`getopt -o c --long copy -n 'parse-options' -- "$@"`
+	eval set -- "$opts"
+
+	while true ; do
+		case "$1" in
+			-c | --copy      )      COPY=true; shift ;;
+			--               )          shift; break ;;
+			*                )          shift; break ;;
+		esac
+	done	
+
 	func_sys_check
 	func_arg_check ARG_NUM[@] "$@"
-	
+
 	if [ -f "$HOME"/.minipass/"$1"/"$2".gpg ] ; then
 		gpg -q --output "$HOME"/.minipass/"$1"/"$2" --decrypt "$HOME"/.minipass/"$1"/"$2".gpg
-		cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
+
+		if [ "$COPY" = true ] ; then
+			cat "$HOME"/.minipass/"$1"/"$2" | xclip -selection clipboard
+			func_msg "Password has been copied to clipboard."
+		else
+			cat "$HOME"/.minipass/"$1"/"$2" ; echo ''
+		fi
+		
 		rm "$HOME"/.minipass/"$1"/"$2"
 	else
 		func_err "Password nonexistant for domain and username"
