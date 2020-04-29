@@ -2,7 +2,6 @@
 
 # TODO: allow user to add in passphrase to not be affected by GPG popup prompt 
 # TODO: allow import/export password systems for multisystem setup (maybe git?)
-# TODO: use XCLIP for easy copy/paste
 
 # Displays messages from program
 func_msg() {
@@ -329,8 +328,8 @@ cmd_tree() {
 
 # Shows all available commands
 cmd_help() {
-	func_msg "  usage: mp [ init ] [ -e/-m ins ] [ -a gen ]"
-	func_msg "      [ -f rm ] [ tree ] [--help] [--version]"
+	func_msg "  usage: mp [ init ] [ -e/-m ins ] [ -a gen ] [ -c show ]"
+	func_msg "                  [ -f rm ] [ tree ] [--help] [--version]"
 	func_msg "  ----------------- Options -----------------"
 	func_msg "  init | initialize                           -> Creates password system for the current user in their HOME directory"
 	func_msg "  ins  | insert     <domain-name>             -> Adds new username and password credentials to password system"
@@ -339,6 +338,7 @@ cmd_help() {
 	func_msg "  gen  | generate   <pw-length> <domain-name> -> Generates password given length and stores in password system"
 	func_msg "    -a | alphanumeric -> Generates password without special characters"
 	func_msg "  show              <domain-name> <user-name> -> Displays stored password from password system"
+	func_msg "    -c | copy         -> Copies password output to clipboard"
 	func_msg "  rm   | remove     <domain-name> <user-name> -> Removes username/password, domain, or system, depending on parameters given"
 	func_msg "    -f | force        -> Bypasses removal prompt(s)"
 	func_msg "  tree              <domain-name>             -> Shows tree display of password system or domain if given"
@@ -354,7 +354,7 @@ cmd_ver() {
 	func_msg "██║╚██╔╝██║██╔═══╝"
 	func_msg "██║ ╚═╝ ██║██║"
 	func_msg "╚═╝     ╚═╝╚═╝"
-	func_msg "mp/minipass v1.0.0 (c) 2018-2018 by Dheeraj Pille"
+	func_msg "mp/minipass v1.0.0 (c) 2018-2020 by Dheeraj Pille"
 }
 
 case $1 in
