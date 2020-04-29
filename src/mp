@@ -88,17 +88,23 @@ cmd_ins() {
 			break
 		fi
 	done
-	# TODO: add check if password is empty?
-	printf "Password: "
-	if [ "$ECHO" = true ] ; then
-		if [ "$MULTILINE" = true ] ; then
-			PASSWORD=$(</dev/stdin)
+	while true; do
+		printf "Password: "
+		if [ "$ECHO" = true ] ; then
+			if [ "$MULTILINE" = true ] ; then
+				PASSWORD=$(</dev/stdin)
+			else
+				read -r PASSWORD
+			fi
 		else
-			read -r PASSWORD
+			read -r -s PASSWORD && echo
 		fi
-	else
-		read -r -s PASSWORD && echo
-	fi
+		if [ -z "$PASSWORD" ] ; then
+			func_msg "Password is empty. Please enter a non-empty password."
+		else
+			break
+		fi
+	done
 	echo -n "$PASSWORD" > "$HOME"/.minipass/"$1"/"$USERNAME"
 	gpg --encrypt --default-recipient-self "$HOME"/.minipass/"$1"/"$USERNAME"
 	rm "$HOME"/.minipass/"$1"/"$USERNAME"
